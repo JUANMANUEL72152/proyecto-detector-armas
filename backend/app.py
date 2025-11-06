@@ -8,15 +8,14 @@ from datetime import datetime
 import threading
 import os
 import time
-# -----------------------------
-# CONFIGURACIÓN DE LA APP
-# -----------------------------
+
+# Configuración de la App
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave_secreta_segura'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Rutas y parámetros
-MODEL_PATH = "models/best.pt"  # tu modelo entrenado
+MODEL_PATH = "models/best.pt"
 CONFIDENCE_THRESHOLD = 0.5
 MAX_HISTORY = 50
 
@@ -50,9 +49,8 @@ class DetectionTracker:
 
 tracker = DetectionTracker()
 
-# -----------------------------
-# CARGA DEL MODELO
-# -----------------------------
+
+# Carga del modelo
 def load_model():
     global model
     try:
@@ -68,33 +66,60 @@ def load_model():
             print(f"Cargando modelo desde {MODEL_PATH} ...")
             # Forzamos weights_only=False para PyTorch >= 2.6
             model = YOLO(MODEL_PATH, task="detect")
-            print(f"✅ Modelo cargado correctamente: {MODEL_PATH}")
+            print(f"Modelo cargado correctamente: {MODEL_PATH}")
             return True
         else:
-            print(f"❌ Modelo no encontrado en: {MODEL_PATH}")
+            print(f"Modelo no encontrado en: {MODEL_PATH}")
             return False
 
     except Exception as e:
         print(f"⚠ Error al cargar el modelo: {e}")
         return False
 
-# -----------------------------
-# FLUJO DE VIDEO Y DETECCIÓN
-# -----------------------------
+
+# --- INICIO DE MODIFICACIÓN ---
+# Flujo de video y detección
 def generate_frames():
     global camera, is_running
+    print("Buscando cámara...")
+    indices_to_try = [0, 1]
+    backends_to_try = [cv2.CAP_DSHOW, cv2.CAP_MSMF]
+    camera_found = False
 
-    # Intentar abrir la cámara
-    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    for index in indices_to_try:
+        for backend in backends_to_try:
+            backend_name = "DSHOW" if backend == cv2.CAP_DSHOW else "MSMF"
+            print(f"Probando: Índice {index} con Backend {backend_name}")
+            camera = cv2.VideoCapture(index, backend)
+            if camera is not None and camera.isOpened():
+                print(f"¡Éxito! Cámara encontrada en Índice {index} ({backend_name})")
+                camera_found = True
+                break
+        if camera_found:
+            break
+
+    # Si fallan los backends específicos, probar el default (automático)
+    if not camera_found:
+        for index in indices_to_try:
+            print(f"Probando: Índice {index} con Backend DEFAULT")
+            camera = cv2.VideoCapture(index)
+            if camera is not None and camera.isOpened():
+                print(f"¡Éxito! Cámara encontrada en Índice {index} (DEFAULT)")
+                camera_found = True
+                break
+
+    # Si después de todo no se encuentra, abortar
+    if not camera_found:
+        print("⚠ Error: No se pudo acceder a la cámara con ningún método.")
+        print("Verifica los permisos de cámara en la Configuración de Windows.")
+        is_running = False
+        return
+    
+    # Configurar resolución
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    if not camera.isOpened():
-        print("❌ No se pudo acceder a la cámara.")
-        is_running = False
-        return
-
-    print("✅ Cámara iniciada correctamente.")
+    print("Cámara iniciada correctamente. Generando frames...")
 
     while is_running:
         success, frame = camera.read()
@@ -104,14 +129,17 @@ def generate_frames():
             print("⚠ Cámara desconectada o sin señal, intentando reconectar...")
             camera.release()
             time.sleep(1)
-            camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            camera = cv2.VideoCapture(camera.get(cv2.CAP_PROP_POS_MSEC), camera.get(cv2.CAP_PROP_BACKEND)) 
+            if not camera.isOpened():
+                print("No se pudo reconectar.")
+                time.sleep(2)
             continue
 
         # Realizar detección con YOLO
         try:
             results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
         except Exception as e:
-            print(f"❌ Error en la detección: {e}")
+            print(f"Error en la detección: {e}")
             continue
 
         frame_has_danger = False
@@ -138,13 +166,13 @@ def generate_frames():
 
         # Mostrar alerta si se detectó un objeto peligroso
         if frame_has_danger:
-            cv2.putText(frame, "⚠ ALERTA: OBJETO PELIGROSO DETECTADO",
+            cv2.putText(frame, "ALERTA: OBJETO PELIGROSO DETECTADO",
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # Convertir frame a formato JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
         if not ret:
-            print("⚠ Error al codificar frame.")
+            print("Error al codificar frame.")
             continue
 
         frame_bytes = buffer.tobytes()
@@ -155,13 +183,12 @@ def generate_frames():
     if camera is not None and camera.isOpened():
         camera.release()
         cv2.destroyAllWindows()
-        print("✅ Cámara liberada correctamente al finalizar.")
+        print("Cámara liberada correctamente al finalizar.")
     else:
         print("ℹ Cámara ya estaba liberada.")
 
-# -----------------------------
-# RUTAS FLASK
-# -----------------------------
+
+# Rutas Flask
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -194,14 +221,14 @@ def stop_camera():
         if camera is not None and camera.isOpened():
             camera.release()
             cv2.destroyAllWindows()
-            print("✅ Cámara liberada correctamente")
+            print("Cámara liberada correctamente")
         else:
             print("ℹ Cámara no estaba activa o ya fue liberada.")
         is_running = False
         camera = None
         return jsonify({'success': True, 'message': 'Cámara detenida correctamente'})
     except Exception as e:
-        print(f"❌ Error al detener la cámara: {e}")
+        print(f"Error al detener la cámara: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 
@@ -229,24 +256,20 @@ def get_stats():
         'average_confidence': avg_conf
     })
 
-# -----------------------------
-# SOCKET IO
-# -----------------------------
+# Socket IO
 @socketio.on('connect')
 def handle_connect():
-    print("🟢 Cliente conectado")
+    print("Cliente conectado")
     emit('response', {'data': 'Conectado al detector'})
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("🔴 Cliente desconectado")
+    print("Cliente desconectado")
 
-# -----------------------------
-# INICIO DE LA APP
-# -----------------------------
+# Inicio de la app
 if __name__ == '__main__':
     if load_model():
-        print("🚀 Iniciando servidor en http://localhost:5000")
+        print("Iniciando servidor en http://localhost:5000")
         socketio.run(app, debug=True, host='0.0.0.0', port=5000)
     else:
-        print("❌ No se pudo iniciar: modelo no encontrado.")
+        print("No se pudo iniciar: modelo no encontrado.")

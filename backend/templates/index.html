@@ -9,14 +9,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔫 DETECTOR DE ARMAS - IA</h1>
+            <h1> DETECTOR DE ARMAS - IA</h1>
             <p>Sistema de detección en tiempo real con visión artificial</p>
         </div>
 
         <div class="content">
             <div class="video-section">
                 <div class="video-container">
-                    <img id="videoStream" src="/video_feed" alt="Video Stream">
+                    <img id="videoStream" src="" alt="Video Stream">
                     <div class="status-badge offline" id="statusBadge">
                         <span class="loading"></span> OFFLINE
                     </div>
@@ -31,7 +31,7 @@
 
             <div class="sidebar">
                 <div class="card">
-                    <h3>📊 Estadísticas</h3>
+                    <h3> Estadísticas</h3>
                     <div class="stat">
                         <span class="stat-label">Total Detecciones:</span>
                         <span class="stat-value" id="totalDetections">0</span>
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="card">
-                    <h3>📋 Últimas Detecciones</h3>
+                    <h3> Últimas Detecciones</h3>
                     <div class="detection-list" id="detectionList">
                         <div class="empty-state">Sin detecciones aún</div>
                     </div>
@@ -60,12 +60,14 @@
         </div>
     </div>
 
-    <script>
+<script>
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const clearBtn = document.getElementById('clearBtn');
         const statusBadge = document.getElementById('statusBadge');
         const detectionList = document.getElementById('detectionList');
+        const videoStream = document.getElementById('videoStream'); 
+        
         let isRunning = false;
         let updateInterval;
 
@@ -73,6 +75,8 @@
             const response = await fetch('/api/start', { method: 'POST' });
             const data = await response.json();
             if (data.success) {
+                videoStream.src = '/video_feed?t=' + new Date().getTime(); 
+                
                 isRunning = true;
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
@@ -87,6 +91,8 @@
             const response = await fetch('/api/stop', { method: 'POST' });
             const data = await response.json();
             if (data.success) {
+                videoStream.src = ""; 
+
                 isRunning = false;
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
@@ -109,11 +115,16 @@
                 document.getElementById('gunsCount').textContent = stats.guns;
                 document.getElementById('knivesCount').textContent = stats.knives;
                 document.getElementById('avgConfidence').textContent = (stats.average_confidence * 100).toFixed(1) + '%';
+                
                 const histResponse = await fetch('/api/history');
                 const history = await histResponse.json();
                 updateDetectionList(history);
+
             } catch (error) {
                 console.error('Error updating stats:', error);
+                if (!isRunning) {
+                     clearInterval(updateInterval);
+                }
             }
         }
 
@@ -132,8 +143,6 @@
                 </div>
             `).join('');
         }
-
-        setInterval(() => { if (isRunning) updateStats(); }, 2000);
     </script>
 </body>
 </html>
