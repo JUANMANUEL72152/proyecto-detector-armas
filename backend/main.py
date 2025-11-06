@@ -8,7 +8,6 @@ from PIL import Image
 from ultralytics import YOLO
 model = YOLO("models/best.pt")
 
-# 
 # Aquí se crea la app, esto es lo que Uvicorn busca
 app = FastAPI()
 

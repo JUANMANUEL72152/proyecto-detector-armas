@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+*.pyd
+*.dll
+*.exe
+*.so
+*.log
+.DS_Store
+.ipynb_checkpoints/
+*.cache/
