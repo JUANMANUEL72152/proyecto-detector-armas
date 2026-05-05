@@ -1,70 +1,183 @@
-# Getting Started with Create React App
+# 🔫 Detector de Armas con IA
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistema de detección de armas en tiempo real usando **YOLOv8** y visión artificial.  
+Detecta pistolas y cuchillos tanto desde la cámara en vivo como desde imágenes subidas.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 📁 Estructura del proyecto
 
-### `npm start`
+```
+proyecto-detector-armas/
+├── backend/
+│   ├── app.py              # Servidor Flask unificado (cámara en vivo + imágenes)
+│   ├── requirements.txt    # Dependencias Python
+│   ├── models/
+│   │   └── best.pt         # Modelo YOLOv8 entrenado
+│   ├── templates/
+│   │   └── index.html      # Interfaz web clásica (Flask)
+│   └── static/
+│       └── style.css       # Estilos de la interfaz Flask
+└── frontend/
+    ├── src/
+    │   ├── App.js
+    │   └── WeaponDetection_WebUI.jsx  # Interfaz React
+    └── package.json
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ⚙️ Requisitos previos
 
-### `npm test`
+- Python 3.10 o superior
+- Node.js 18 o superior
+- Una cámara web (para detección en tiempo real)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🚀 Instalación y ejecución
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Clonar el repositorio
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+git clone https://github.com/JUANMANUEL72152/proyecto-detector-armas.git
+cd proyecto-detector-armas
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2. Configurar el backend (Flask)
 
-### `npm run eject`
+```bash
+cd backend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Crear entorno virtual (recomendado)
+python -m venv venv
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Activar entorno virtual
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Instalar dependencias
+pip install -r requirements.txt
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+#### Variables de entorno (opcional pero recomendado)
 
-## Learn More
+Crea un archivo `.env` en la carpeta `backend/` con:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+SECRET_KEY=una_clave_larga_y_secreta
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Si no lo creas, el servidor usará una clave por defecto solo apta para desarrollo.
 
-### Code Splitting
+#### Iniciar el servidor
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+python app.py
+```
 
-### Analyzing the Bundle Size
+El servidor queda disponible en: **http://localhost:5000**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+### 3. Configurar el frontend (React)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+# Desde la raíz del proyecto
+cd frontend
 
-### Advanced Configuration
+# Instalar dependencias
+npm install
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+# Iniciar la app React
+npm start
+```
 
-### Deployment
+La app React queda disponible en: **http://localhost:3000**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+> ⚠️ El frontend React se comunica con el backend en `http://127.0.0.1:5000`.  
+> Asegúrate de que el backend esté corriendo antes de usar el frontend.
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🖥️ Modos de uso
+
+El proyecto ofrece dos interfaces:
+
+### Interfaz Flask (clásica)
+Accede a **http://localhost:5000** en tu navegador.  
+- Detección en tiempo real desde la cámara web
+- Panel de estadísticas y historial de detecciones
+- Botones para iniciar/detener/limpiar
+
+### Interfaz React
+Accede a **http://localhost:3000** en tu navegador.  
+- Activa la cámara, captura un frame y envíalo al modelo
+- Visualiza los bounding boxes sobre la imagen capturada
+
+---
+
+## 🔌 Endpoints de la API
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/` | Interfaz web Flask |
+| `GET` | `/video_feed` | Stream de video con detecciones en vivo |
+| `POST` | `/api/start` | Inicia la cámara |
+| `POST` | `/api/stop` | Detiene la cámara |
+| `POST` | `/api/detect` | Detecta armas en una imagen subida (usado por React) |
+| `GET` | `/api/history` | Devuelve el historial de detecciones |
+| `POST` | `/api/clear-history` | Limpia el historial |
+| `GET` | `/api/stats` | Estadísticas: total, pistolas, cuchillos, confianza promedio |
+
+### Ejemplo: llamar `/api/detect` con curl
+
+```bash
+curl -X POST http://localhost:5000/api/detect \
+  -F "file=@/ruta/a/tu/imagen.jpg"
+```
+
+Respuesta esperada:
+```json
+{
+  "detections": [
+    {
+      "label": "gun",
+      "confidence": 0.87,
+      "box": [120.0, 45.0, 200.0, 150.0]
+    }
+  ]
+}
+```
+
+---
+
+## 🧠 Modelo
+
+El archivo `backend/models/best.pt` es un modelo YOLOv8 personalizado entrenado para detectar:
+- **Pistolas / guns**
+- **Cuchillos / knives**
+
+Si deseas reemplazarlo por uno propio, entrena con [Ultralytics YOLOv8](https://docs.ultralytics.com/) y coloca el nuevo `best.pt` en la misma ruta.
+
+---
+
+## 🛠️ Tecnologías usadas
+
+| Capa | Tecnología |
+|------|-----------|
+| Detección IA | YOLOv8 (Ultralytics) |
+| Backend | Flask + Flask-SocketIO |
+| Visión artificial | OpenCV, Pillow |
+| Frontend moderno | React + Tailwind CSS |
+| Frontend clásico | HTML + CSS vanilla |
+
+---
+
+## 📝 Notas de desarrollo
+
+- Los archivos `__pycache__` y `.pyc` no deben subirse al repositorio. Están excluidos en `.gitignore`.
+- En producción, configurar `SECRET_KEY` como variable de entorno y restringir `CORS` a los dominios específicos.
+- El historial de detecciones se guarda en memoria RAM y se pierde al reiniciar el servidor.

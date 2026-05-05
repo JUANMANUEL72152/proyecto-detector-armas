@@ -1,8 +1,29 @@
+# -----------------------------------------------
+# Backend Flask unificado - Detector de Armas
+# Instalar con: pip install -r requirements.txt
+# -----------------------------------------------
+
+# Servidor web
 Flask==2.3.3
 Flask-SocketIO==5.3.4
-opencv-python==4.8.0.76
-numpy==1.24.3
-ultralytics==8.0.196
+Flask-Cors==4.0.0          # Necesario para CORS con el frontend React
+Werkzeug==2.3.7
+
+# Socket
 python-socketio==5.9.0
 python-engineio==4.7.1
-Werkzeug==2.3.7
+
+# Visión artificial
+opencv-python==4.8.0.76
+Pillow==10.0.1              # Necesario para /api/detect (procesar imágenes subidas)
+
+# Detección con YOLO
+ultralytics==8.0.196
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Utilidades numéricas
+numpy==1.24.3
+
+# Variables de entorno
+python-dotenv==1.0.0

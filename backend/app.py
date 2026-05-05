@@ -1,18 +1,27 @@
 from flask import Flask, render_template, Response, jsonify, request
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
+from dotenv import load_dotenv
 import cv2
 import numpy as np
 from ultralytics import YOLO
 from collections import deque
 from datetime import datetime
+from PIL import Image
+from io import BytesIO
 import threading
 import os
 import time
+
+# Cargar variables de entorno desde .env
+load_dotenv()
+
 # -----------------------------
 # CONFIGURACIÓN DE LA APP
 # -----------------------------
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clave_secreta_segura'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_secreta_segura')
+CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Rutas y parámetros
@@ -209,6 +218,50 @@ def stop_camera():
 @app.route('/api/history', methods=['GET'])
 def get_history():
     return jsonify(tracker.get_history())
+
+@app.route('/api/detect', methods=['POST'])
+def detect_image():
+    """
+    Recibe una imagen estática (upload desde el frontend React)
+    y devuelve las detecciones en formato JSON.
+    Antes solo existía en main.py (FastAPI) — ahora unificado aquí.
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No se recibió ningún archivo'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Archivo vacío'}), 400
+
+    if not model:
+        return jsonify({'error': 'Modelo no cargado'}), 503
+
+    try:
+        img_bytes = file.read()
+        image = Image.open(BytesIO(img_bytes)).convert('RGB')
+        frame = np.array(image)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
+        detections = []
+
+        for result in results:
+            for box in result.boxes:
+                x1, y1, x2, y2 = map(float, box.xyxy[0])
+                conf = float(box.conf[0])
+                label = result.names[int(box.cls[0])]
+                tracker.add_detection(label, conf)
+                detections.append({
+                    'label': label,
+                    'confidence': conf,
+                    'box': [x1, y1, x2 - x1, y2 - y1]
+                })
+
+        return jsonify({'detections': detections})
+
+    except Exception as e:
+        return jsonify({'error': f'Error procesando imagen: {str(e)}'}), 500
+
 
 @app.route('/api/clear-history', methods=['POST'])
 def clear_history():
