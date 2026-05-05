@@ -60,6 +60,20 @@ docker build -t detector-armas-backend ./backend
 docker run --rm -p 5000:5000 --env-file ./backend/.env detector-armas-backend
 ```
 
+### Opcion B1: Docker Compose (mas simple)
+
+Con `docker-compose.yml` puedes levantar el backend con un solo comando:
+
+```bash
+docker compose up --build
+```
+
+Para detener:
+
+```bash
+docker compose down
+```
+
 Notas:
 - Esta opcion estandariza dependencias del backend.
 - La deteccion por imagen (`/api/detect`) funciona bien.
