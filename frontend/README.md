@@ -29,7 +29,7 @@ proyecto-detector-armas/
 
 ## ⚙️ Requisitos previos
 
-- Python 3.10 o superior
+- Python recomendado: **3.10 o 3.11**
 - Node.js 18 o superior
 - Una cámara web (para detección en tiempo real)
 
@@ -58,9 +58,39 @@ venv\Scripts\activate
 # macOS/Linux:
 source venv/bin/activate
 
-# Instalar dependencias
+# Actualizar pip e instalar dependencias
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+### Compatibilidad con versiones nuevas de Python
+
+Este proyecto funciona mejor con **Python 3.10/3.11**.  
+Si una persona usa una versión mucho más nueva (por ejemplo 3.12 o 3.13), algunas librerías de visión artificial o IA pueden no tener ruedas binarias listas para su sistema y fallar en la instalación.
+
+Si ocurre un error de dependencias:
+
+1. Verificar versión:
+   ```bash
+   python --version
+   ```
+2. En Windows, instalar y usar Python 3.11 explícitamente:
+   ```bash
+   py -3.11 -m venv venv
+   venv\Scripts\activate
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+3. Si ya existe un entorno anterior, recrearlo limpio:
+   ```bash
+   # Windows
+   rmdir /s /q venv
+   py -3.11 -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+En resumen: si con Python muy nuevo falla, la solución más estable es usar **Python 3.11** para el entorno virtual del proyecto.
 
 #### Variables de entorno (opcional pero recomendado)
 
@@ -183,3 +213,4 @@ Si deseas reemplazarlo por uno propio, entrena con [Ultralytics YOLOv8](https://
 - Los archivos `__pycache__` y `.pyc` no deben subirse al repositorio. Están excluidos en `.gitignore`.
 - En producción, configurar `SECRET_KEY` como variable de entorno y restringir `CORS` a los dominios específicos.
 - El historial de detecciones se guarda en memoria RAM y se pierde al reiniciar el servidor.
+- Si `pip install -r requirements.txt` muestra caracteres extraños (`F\x00l\x00a...`), el archivo `requirements.txt` tiene codificación incorrecta. Debe guardarse en **UTF-8**.

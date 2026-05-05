@@ -12,9 +12,25 @@ from io import BytesIO
 import threading
 import os
 import time
+import sys
 
 # Cargar variables de entorno
 load_dotenv()
+
+SUPPORTED_PYTHON_MIN = (3, 10)
+SUPPORTED_PYTHON_MAX = (3, 12)
+
+
+def validate_python_version():
+    current = sys.version_info[:2]
+    if SUPPORTED_PYTHON_MIN <= current <= SUPPORTED_PYTHON_MAX:
+        return
+    version_str = f"{current[0]}.{current[1]}"
+    print(
+        "ADVERTENCIA: Esta version de Python "
+        f"({version_str}) no esta oficialmente validada para este proyecto. "
+        "Se recomienda usar Python 3.10, 3.11 o 3.12."
+    )
 
 # -----------------------------
 # CONFIGURACIÓN DE LA APP
@@ -334,6 +350,7 @@ def handle_disconnect():
 # MAIN
 # -----------------------------
 if __name__ == '__main__':
+    validate_python_version()
     if load_model():
         print("Servidor en http://localhost:5000")
         socketio.run(app, debug=True, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)

@@ -1,0 +1,36 @@
+name: Backend Compatibility
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-compatibility.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-compatibility.yml"
+
+jobs:
+  validate-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Backend syntax smoke test
+        run: python -m py_compile backend/app.py
