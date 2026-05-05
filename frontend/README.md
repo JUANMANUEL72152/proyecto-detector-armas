@@ -68,9 +68,11 @@ Crea un archivo `.env` en la carpeta `backend/` con:
 
 ```
 SECRET_KEY=una_clave_larga_y_secreta
+CAMERA_INDEX=0
 ```
 
 Si no lo creas, el servidor usará una clave por defecto solo apta para desarrollo.
+Si tienes varias cámaras, ajusta `CAMERA_INDEX` (0, 1, 2...) hasta seleccionar la correcta.
 
 #### Iniciar el servidor
 
