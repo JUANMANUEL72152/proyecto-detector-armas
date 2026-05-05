@@ -124,6 +124,7 @@ def generate_frames():
             continue
 
         frame_has_danger = False
+        objetos_peligrosos = []
 
         for result in results:
             for box in result.boxes:
@@ -137,6 +138,11 @@ def generate_frames():
                 if label.lower() in ["gun", "knife", "arma", "pistola", "cuchillo"]:
                     color = (0, 0, 255)
                     frame_has_danger = True
+                    objetos_peligrosos.append({
+                        'label': label,
+                        'confidence': round(conf, 2),
+                        'timestamp': datetime.now().strftime("%H:%M:%S")
+                    })
 
                 # Dibujar rectángulo y texto
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
@@ -145,8 +151,13 @@ def generate_frames():
 
                 tracker.add_detection(label, conf)
 
-        # Mostrar alerta si se detectó un objeto peligroso
+        # Emitir alerta por SocketIO a todos los clientes conectados
         if frame_has_danger:
+            socketio.emit('alerta_peligro', {
+                'mensaje': '⚠ OBJETO PELIGROSO DETECTADO',
+                'objetos': objetos_peligrosos,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            })
             cv2.putText(frame, "⚠ ALERTA: OBJETO PELIGROSO DETECTADO",
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
