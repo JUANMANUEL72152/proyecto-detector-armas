@@ -131,8 +131,9 @@ def _emit_danger_alert(objetos_peligrosos):
 
 def generate_frames():
     global is_running
-    camera_error_frame = _warning_frame("Cámara no disponible")
-    waiting_frame = _warning_frame("Presiona iniciar cámara")
+    # Mensajes solo ASCII: cv2.putText no dibuja bien tildes/UTF-8 en muchos sistemas.
+    camera_error_frame = _warning_frame("Camara no disponible")
+    waiting_frame = _warning_frame("Pulse INICIAR en esta pagina (Flask)")
 
     while True:
         with lock:
@@ -237,14 +238,14 @@ def start_camera():
 
     with lock:
         if is_running:
-            return jsonify({'success': True, 'message': 'Cámara ya estaba activa'})
+            return jsonify({'success': True, 'message': 'Camara ya estaba activa'})
 
         if not _open_camera():
-            return jsonify({'success': False, 'message': 'No se pudo abrir la cámara'}), 500
+            return jsonify({'success': False, 'message': 'No se pudo abrir la camara'}), 500
 
         is_running = True
 
-    return jsonify({'success': True, 'message': 'Cámara iniciada'})
+    return jsonify({'success': True, 'message': 'Camara iniciada'})
 
 @app.route('/api/stop', methods=['POST'])
 def stop_camera():

@@ -6,6 +6,6 @@ services:
     container_name: detector-armas-backend
     ports:
       - "5000:5000"
-    env_file:
-      - ./backend/.env
+    environment:
+      CAMERA_INDEX: ${CAMERA_INDEX:-0}
     restart: unless-stopped

@@ -72,7 +72,7 @@ export default function WeaponDetectionWebUI() {
       const backendStart = await fetch(`${BACKEND_URL}/api/start`, { method: "POST" });
       if (!backendStart.ok) {
         const payload = await backendStart.json().catch(() => ({}));
-        throw new Error(payload.message || "No fue posible iniciar la cámara en el backend");
+        throw new Error(payload.message || "No fue posible iniciar la camara en el backend");
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -80,7 +80,7 @@ export default function WeaponDetectionWebUI() {
       videoRef.current.srcObject = stream;
       setIsRunning(true);
     } catch (err) {
-      setError(err.message || "No se pudo acceder a la cámara. Verifica los permisos del navegador.");
+      setError(err.message || "No se pudo acceder a la camara. Verifica los permisos del navegador.");
     }
   };
 
@@ -263,7 +263,7 @@ export default function WeaponDetectionWebUI() {
             onClick={startCamera}
             className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg font-semibold transition"
           >
-            ▶ Iniciar Cámara
+            ▶ Iniciar camara
           </button>
         ) : (
           <button
@@ -287,7 +287,7 @@ export default function WeaponDetectionWebUI() {
         </h2>
         {detections.length === 0 ? (
           <p className="text-gray-500 text-sm">
-            {isRunning ? "Apunta la cámara a un objeto para detectar." : "Inicia la cámara para comenzar."}
+            {isRunning ? "Apunta la camara a un objeto para detectar." : "Inicia la camara para comenzar."}
           </p>
         ) : (
           <ul className="space-y-2">
