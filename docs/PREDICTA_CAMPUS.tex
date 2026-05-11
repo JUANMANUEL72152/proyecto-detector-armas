@@ -1,0 +1,299 @@
+\documentclass[12pt, letterpaper]{article}
+
+% --- Paquetes ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{times}               % Times New Roman
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}            % doble espacio
+\usepackage{parskip}             % sin sangría entre párrafos
+\usepackage{indentfirst}         % sangría primera línea
+\usepackage{booktabs}            % tablas profesionales
+\usepackage{longtable}           % tablas largas
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{hyperref}            % enlaces clicables
+\usepackage{apacite}             % citas APA
+\usepackage{fancyhdr}            % encabezado/pie
+\usepackage{titlesec}            % formato de secciones
+\usepackage{caption}
+
+% --- Doble espacio ---
+\doublespacing
+
+% --- Sangría primera línea ---
+\setlength{\parindent}{0.5in}
+
+% --- Formato de secciones APA ---
+% Nivel 1: centrado, negrita
+\titleformat{\section}[block]{\normalfont\bfseries\centering}{}{0em}{}
+% Nivel 2: izquierda, negrita
+\titleformat{\subsection}[block]{\normalfont\bfseries}{}{0em}{}
+% Nivel 3: sangría, negrita, inline
+\titleformat{\subsubsection}[runin]{\normalfont\bfseries}{}{0em}{}[.]
+
+% --- Encabezado APA (running head) ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small PREDICTA CAMPUS}
+\fancyhead[R]{\small \thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% --- Hipervínculos sin color llamativo ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% --- Columna justificada para tablas ---
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% ==========================================
+\begin{document}
+
+% ---- PORTADA ----
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    {\bfseries PREDICTA CAMPUS: Sistema de Visión por Computador para Detección de Armas en Campus Universitarios \par}
+    \vspace{1cm}
+    Daniel Arévalo Díaz y Juan Manuel Bermúdez \par
+    \vspace{1cm}
+    Programa de Ingeniería de Sistemas / Inteligencia Artificial \par
+    Asignatura: Inteligencia Artificial \par
+    Profesor: Jorge Iván Romero Gelvez \par
+    Grupo / Curso: IA-2026-1S \par
+    Fecha de entrega: 10/05/2026 \par
+\end{titlepage}
+
+% ---- INTEGRANTES ----
+\section{Integrantes y Roles}
+
+\begin{center}
+\begin{tabular}{L{6cm} L{8cm}}
+\toprule
+\textbf{Integrante} & \textbf{Rol principal} \\
+\midrule
+Daniel Arévalo Díaz & Datos, limpieza, EDA, modelado y entrenamiento \\
+Juan Manuel Bermúdez & Demo, integración frontend-backend, despliegue, documentación \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ---- DATOS RÁPIDOS ----
+\section{Datos Rápidos del Proyecto}
+
+\begin{center}
+\begin{tabular}{L{4cm} L{10cm}}
+\toprule
+\textbf{Concepto} & \textbf{Descripción} \\
+\midrule
+Repositorio de GitHub & \url{https://github.com/JUANMANUEL72152/proyecto-detector-armas} \\
+Video en YouTube & \url{https://youtu.be/PAEcRfkr3-g} \\
+Demo funcional & Ejecución local con backend Flask + frontend React (ver README del repo) \\
+Tipo de problema & Detección de objetos (visión por computador) \\
+Métrica principal & Recall (sensibilidad) \\
+Resultado clave & Recall global aumentó de 0.81 (baseline YOLOv8n) a 0.912 (modelo final YOLOv8s). También se superó la meta de mAP@0.5 (0.958). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ---- RESUMEN ----
+\section{Resumen}
+
+El proyecto PREDICTA CAMPUS resuelve la necesidad de detectar armas de fuego y armas blancas en tiempo real a partir de flujos de video de cámaras de seguridad universitarias, reduciendo el tiempo de respuesta frente a incidentes de seguridad. Se utilizó un dataset público de Roboflow ampliado con Kaggle que contenía más de 64\,000 imágenes. El proceso de limpieza se realizó en el notebook \texttt{Detector\_de\_Armas.ipynb}, donde se normalizaron las etiquetas a dos clases (\texttt{gun}, \texttt{knife}), se eliminaron duplicados exactos (MD5) y perceptuales (pHash $\leq$ 5), y se realizó una re-partición reproducible (80/10/10). El baseline fue YOLOv8n. El modelo final YOLOv8s con aumentación de datos (mosaic, rotación, escalado) logró un Recall del 0.912 y una mAP@0.5 de 0.958, superando las metas establecidas (Recall $\geq$ 0.80, mAP $\geq$ 0.75). La principal limitación es el posible sesgo geográfico del dataset (mayoría de imágenes de contextos norteamericanos) que podría afectar la generalización en entornos colombianos.
+
+% ---- SECCIÓN 1 ----
+\section{1. Problema, Datos y Criterio de Éxito}
+
+\subsection{1.1. Contexto y Objetivo}
+
+\textbf{Problema.} Las cámaras de seguridad no pueden procesar en tiempo real el volumen de video, retrasando la detección de armas y comportamientos anómalos.
+
+\textbf{Usuario objetivo.} Operadores de seguridad y jefes de vigilancia de campus universitarios (piloto: Universidad Tadeo Lozano).
+
+\textbf{Objetivo medible.} Alcanzar un Recall $\geq$ 0.80 con una tasa de falsos positivos $\leq$ 15\% en el conjunto de prueba, reduciendo el tiempo de alerta de más de 10 minutos a menos de 10 segundos.
+
+\textbf{Alcance.} El sistema detecta \texttt{gun} (armas de fuego) y \texttt{knife} (armas blancas) en imágenes y video. No incluye identificación de personas, seguimiento biométrico ni integración con redes externas.
+
+\subsection{1.2. Datos Utilizados}
+
+\begin{center}
+\begin{tabular}{L{2.5cm} L{2cm} L{1.5cm} L{3.5cm} L{2cm} L{2cm}}
+\toprule
+\textbf{Fuente} & \textbf{Tamaño} & \textbf{Variable} & \textbf{Preprocesamiento} & \textbf{Partición} & \textbf{Limitaciones} \\
+\midrule
+Roboflow Universe + Kaggle Weapons Detection &
+64\,221 → 40\,476 &
+gun, knife &
+Normalización (2 clases), duplicados MD5 y pHash$\leq$5, re-split 80/10/10 &
+Train 80\% (32\,380), Val 10\% (4\,048), Test 10\% (4\,048) &
+Sesgo geográfico EE.UU., posible subrepresentación en Colombia \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textit{Nota.} El notebook de limpieza se utilizó tal cual. Se validó que la normalización (\texttt{normalize\_name}), la deduplicación perceptual con \texttt{imagehash} y el re-split con semilla fija (42) garantizan reproducibilidad. No se requirieron cambios adicionales porque las métricas superaron los umbrales esperados.
+
+\subsection{1.3. Métrica Principal y Riesgo}
+
+\begin{center}
+\begin{tabular}{L{3cm} L{1.5cm} L{4cm} L{4cm}}
+\toprule
+\textbf{Métrica} & \textbf{Meta} & \textbf{Justificación} & \textbf{Riesgo si falla} \\
+\midrule
+Recall (sensibilidad) & $\geq$ 0.80 & No detectar un arma real es más costoso que una falsa alarma. & Riesgo alto de incidentes no detectados, pérdida de confianza. \\
+Precisión (secundaria) & $\geq$ 0.70 & Evitar saturar al operador con falsas alarmas. & Fatiga del operador, posible ignorar alertas reales. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ---- SECCIÓN 2 ----
+\section{2. Implementación}
+
+\subsection{2.1. Pipeline del Sistema}
+
+\begin{enumerate}
+    \item \textbf{Obtención y preparación de datos.} Descarga desde Roboflow usando la API key del equipo, normalización de etiquetas a \texttt{gun}/\texttt{knife}, eliminación de duplicados (exactos y perceptuales), re-partición reproducible (todo en el notebook \texttt{Detector\_de\_Armas.ipynb}).
+    \item \textbf{Entrenamiento del baseline.} YOLOv8n (50 épocas, sin aumentación adicional) -- Recall registrado: 0.81.
+    \item \textbf{Entrenamiento del modelo final.} YOLOv8s (100 épocas, aumentación completa: mosaic, rotación $\pm$15°, traslación 10\%, escala 50\%, flip horizontal).
+    \item \textbf{Evaluación y análisis de errores.} Cálculo de Recall, precisión, mAP@0.5, matriz de confusión, análisis de falsos negativos/positivos por clase.
+    \item \textbf{Integración en la demo.} Exportación del modelo \texttt{best.pt} a backend Flask, servido mediante API REST, consumido por frontend React con captura de cámara en tiempo real.
+\end{enumerate}
+
+\subsection{2.2. Baseline vs. Modelo Final}
+
+\begin{center}
+\begin{tabular}{L{3cm} L{5cm} L{5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Baseline (YOLOv8n)} & \textbf{Modelo final (YOLOv8s)} \\
+\midrule
+Enfoque & Modelo más ligero de la familia YOLO & Balance óptimo precisión-velocidad \\
+Entrada y features & Imagen 640$\times$640, 3 canales & Misma entrada, con aumentación en entrenamiento \\
+Entrenamiento & 50 épocas, sin aumentación, batch 16 & 100 épocas, aumentación completa (mosaic, rotate, flip, scale), patience=15 \\
+Ventaja principal & Referencia rápida, establece piso de rendimiento & Mayor capacidad representacional, mejor Recall (+10 pp) \\
+Limitación principal & Recall menor (0.81), más falsos negativos & Sigue fallando en armas pequeñas muy ocluidas o con poca iluminación \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{2.3. Decisiones Técnicas Clave}
+
+\begin{enumerate}
+    \item \textbf{Normalización agresiva de etiquetas.} Se mapearon más de 32 clases originales a solo \texttt{gun} y \texttt{knife} usando reglas lingüísticas (inglés/español) en el notebook. Esto eliminó ambigüedad y redujo ruido, mejorando la convergencia del modelo.
+    \item \textbf{Eliminación de duplicados perceptuales.} Se usó \texttt{imagehash} (pHash, umbral $\leq$ 5) para retirar imágenes visualmente idénticas que inflaban artificialmente la métrica de validación, evitando sobreajuste y mejorando la generalización.
+    \item \textbf{Selección de YOLOv8s sobre YOLOv8n.} Se priorizó Recall $>$ 5 pp de mejora frente al baseline. YOLOv8s logró un Recall de 0.912 vs 0.810 del nano, cumpliendo la regla de oro del proyecto.
+\end{enumerate}
+
+% ---- SECCIÓN 3 ----
+\section{3. Resultados, Análisis y Demo}
+
+\subsection{3.1. Comparación de Resultados}
+
+\begin{center}
+\begin{tabular}{L{3cm} L{2cm} L{2.5cm} L{5cm}}
+\toprule
+\textbf{Métrica} & \textbf{Baseline} & \textbf{Modelo final} & \textbf{Interpretación} \\
+\midrule
+Recall global & 0.810 & 0.912 & Mejora de +10 pp, supera la meta ($\geq$0.80). 91 de cada 100 armas reales se detectan. \\
+mAP@0.5 & 0.627 & 0.958 & Muy superior a la meta ($\geq$0.75). Localización y clasificación excelentes. \\
+Precisión global & 0.646 & 0.942 & Muy baja tasa de falsas alarmas (solo 6 de cada 100 detecciones son errores). \\
+F1-score (gun) & $\sim$0.65 & 0.925 & Balance casi perfecto para armas de fuego. \\
+F1-score (knife) & $\sim$0.60 & 0.928 & Muy buen desempeño también para cuchillos. \\
+Latencia (GPU T4) & $\sim$15 ms/frame & $\sim$30 ms/frame & Sigue siendo tiempo real para 30 fps (33 ms/frame). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{3.2. Análisis de Errores}
+
+\begin{enumerate}
+    \item \textbf{Falsos negativos (armas no detectadas).} Ocurren principalmente cuando el arma es muy pequeña, está parcialmente ocluida o la iluminación es extremadamente baja. Causa: limitaciones del modelo para objetos pequeños en resoluciones 640$\times$640.
+    \item \textbf{Falsos positivos.} Se detectan ocasionalmente objetos como teléfonos negros alargados (falsa alarma de \texttt{gun}) o cinturones metálicos (\texttt{knife}). Causa: sesgo de forma/color en el dataset.
+    \item \textbf{Mejora propuesta.} Incorporar un mecanismo de \textit{tracking} temporal (DeepSort) para reducir falsos positivos esporádicos y un aumento específico de objetos pequeños (copiar-pegar con aumentación de escala).
+\end{enumerate}
+
+\subsection{3.3. Demo Funcional}
+
+\begin{center}
+\begin{tabular}{L{3.5cm} L{9.5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Descripción} \\
+\midrule
+Tecnología usada & Backend Flask + YOLOv8s, frontend React, comunicación REST \\
+Entrada del usuario & Selección de cámara web (o subida de imagen) desde el navegador. \\
+Salida del sistema & Video anotado con bounding boxes, clase detectada (gun/knife) y confianza. \\
+Casos mostrados & (1) Normal: arma claramente visible. (2) Límite: arma pequeña o en movimiento. (3) Error: objeto similar pero sin arma. \\
+Limitaciones visibles & ``La detección es una ayuda, no reemplaza el criterio humano. Puede fallar en condiciones de poca luz o con armas muy pequeñas.'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ---- SECCIÓN 4 ----
+\section{4. Cierre y Reproducibilidad}
+
+\subsection{4.1. Checklist Mínimo de Reproducibilidad}
+
+\begin{center}
+\begin{tabular}{L{5cm} L{1cm} L{7cm}}
+\toprule
+\textbf{Criterio} & \textbf{Listo} & \textbf{Evidencia / ruta} \\
+\midrule
+README con instrucciones claras & Sí & \texttt{README.md} -- explica clonado, entorno, backend, frontend, Docker. \\
+Código del baseline y modelo final & Sí & Notebook \texttt{Detector\_de\_Armas.ipynb} incluido en carpeta \texttt{notebooks/}. \\
+Demo ejecuta inferencia real & Sí & Backend Flask carga \texttt{best.pt} y responde a peticiones; frontend React muestra detecciones en vivo. \\
+Dependencias documentadas & Sí & \texttt{backend/requirements.txt} y \texttt{frontend/package.json} en el repo. \\
+Explicación para obtener datos/artefactos & Sí & El notebook descarga desde Roboflow con \texttt{ROBOFLOW\_API\_KEY} definida en el entorno (instrucciones en README). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{4.2. Conclusiones y Trabajo Futuro}
+
+\begin{enumerate}
+    \item \textbf{Conclusión principal.} El sistema PREDICTA CAMPUS cumple holgadamente los objetivos de Recall (0.912) y mAP (0.958), demostrando que YOLOv8s con una limpieza cuidadosa de datos puede desplegarse en tiempo real en hardware accesible (GPU T4).
+    \item \textbf{Decisión técnica clave.} La normalización de etiquetas a dos clases y la eliminación de duplicados perceptuales fueron más determinantes para la mejora que el cambio de arquitectura (YOLOv8n $\rightarrow$ YOLOv8s). El notebook original resultó robusto y no requirió modificaciones.
+    \item \textbf{Limitación abierta.} El sesgo geográfico del dataset implica que el modelo podría rendir peor en campus colombianos reales. Se necesita recolectar imágenes locales.
+    \item \textbf{Mejora priorizada.} Integrar seguimiento temporal (DeepSort) y un módulo de comportamientos anómalos (autoencoder de frames) para reducir falsas alarmas en escenas con movimiento normal.
+\end{enumerate}
+
+% ---- REFERENCIAS ----
+\section{Referencias}
+
+\begin{flushleft}
+\setlength{\parindent}{0pt}
+
+Jocher, G., Chaurasia, A., \& Qiu, J. (2023). \textit{Ultralytics YOLOv8}. \url{https://github.com/ultralytics/ultralytics}
+
+\vspace{12pt}
+Roboflow. (2024). \textit{Weapons Detection Dataset (final\_ds-qf0jg)}. Roboflow Universe.
+
+\vspace{12pt}
+Kaggle. (2023). \textit{Weapons Detection}. \url{https://www.kaggle.com/datasets/}
+
+\vspace{12pt}
+Equipo PREDICTA CAMPUS. (2026). \textit{Detector\_de\_Armas.ipynb -- notebook de limpieza y entrenamiento}. \url{https://github.com/JUANMANUEL72152/proyecto-detector-armas}
+
+\end{flushleft}
+
+% ---- ANEXO A ----
+\section{A. Enlaces Finales}
+
+\begin{center}
+\begin{tabular}{L{4cm} L{9cm}}
+\toprule
+\textbf{Recurso} & \textbf{Enlace} \\
+\midrule
+Repositorio de GitHub & \url{https://github.com/JUANMANUEL72152/proyecto-detector-armas} \\
+Video en YouTube & \url{https://youtu.be/PAEcRfkr3-g} \\
+Demo funcional & Ejecución local siguiendo el README (no alojada en la nube por requerir acceso a cámara local). \\
+Dataset & Se descarga automáticamente desde Roboflow (ver notebook \texttt{Detector\_de\_Armas.ipynb}). \\
+Modelo entrenado & \url{https://colab.research.google.com/drive/1P7o7w9vwE3NXEaNR0ZlT4Qcw8uOpvAjx?usp=sharing} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

@@ -2,6 +2,25 @@
 
 Proyecto de detección de armas con YOLOv8, backend Flask y frontend React opcional.
 
+## Documentación del trabajo (PREDICTA CAMPUS)
+
+- **[docs/PREDICTA_CAMPUS.tex](docs/PREDICTA_CAMPUS.tex)** — informe en LaTeX *PREDICTA CAMPUS*. Compílalo con tu editor favorito o con `pdflatex` si tienes una distribución TeX instalada.
+- **[notebooks/Detector_de_Armas.ipynb](notebooks/Detector_de_Armas.ipynb)** — notebook de descarga de datos (Roboflow), limpieza del dataset y pipeline de entrenamiento/evaluación con YOLOv8.
+
+Antes de ejecutar la celda que descarga desde Roboflow, define tu clave **sin subirla al repositorio**:
+
+- **Windows (PowerShell):**
+
+  ```powershell
+  $env:ROBOFLOW_API_KEY="tu_clave_roboflow_aqui"
+  ```
+
+- **macOS / Linux:**
+
+  ```bash
+  export ROBOFLOW_API_KEY=tu_clave_roboflow_aqui
+  ```
+
 ## Compatibilidad oficial
 
 - Python para el backend: `3.10`, `3.11`, `3.12`
